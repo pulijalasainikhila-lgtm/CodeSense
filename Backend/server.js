@@ -2,12 +2,29 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
+const mongoose = require("mongoose");
+
+const User = require('./models/User');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+const authRoutes = require("./routes/auth");
+app.use("/auth", authRoutes);
+const adminRoutes = require("./routes/admin");
+app.use("/admin", adminRoutes);
+
 
 const MODEL = "llama-3.1-8b-instant";
+
+mongoose.connection.collection("users").dropIndex("username_1").catch(() => {});
+
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB connected"))
+.catch(err => {
+  console.error("MongoDB connection error:", err.message || err);
+  process.exit(1); 
+});
 
 app.post("/explain", async (req, res) => {
     const code = req.body.code || "";
